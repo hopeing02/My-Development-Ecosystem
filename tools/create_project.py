@@ -15,15 +15,23 @@ def default_root() -> Path:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="MDE 새 프로젝트를 생성합니다.")
-    parser.add_argument("--name", required=True, help="kebab-case 프로젝트명. 예: senior-matching")
+    parser.add_argument(
+        "--name", required=True, help="kebab-case 프로젝트명. 예: senior-matching"
+    )
     parser.add_argument(
         "--type",
         default="generic",
         choices=("generic", "python", "gas", "nextjs"),
         help="프로젝트 기술 유형",
     )
-    parser.add_argument("--root", type=Path, default=default_root(), help="MDE 저장소 루트 경로")
-    parser.add_argument("--force", action="store_true", help="생성기가 관리하는 프로젝트 템플릿을 덮어씁니다.")
+    parser.add_argument(
+        "--root", type=Path, default=default_root(), help="MDE 저장소 루트 경로"
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="생성기가 관리하는 프로젝트 템플릿을 덮어씁니다.",
+    )
     args = parser.parse_args()
 
     try:

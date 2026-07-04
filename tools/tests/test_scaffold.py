@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-import sys
 import tempfile
 import unittest
 
-TOOLS_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(TOOLS_ROOT))
-
-from mde_toolkit.core import create_document, create_project, initialize_repository
+from tools.mde_toolkit.core import (
+    create_document,
+    create_project,
+    initialize_repository,
+)
 
 
 class ScaffoldTests(unittest.TestCase):
@@ -27,8 +27,26 @@ class ScaffoldTests(unittest.TestCase):
             root = Path(temp_dir) / "mde"
             create_project(root, "senior-matching", "python")
 
-            self.assertTrue((root / "apps" / "senior-matching" / "src" / "senior_matching" / "__init__.py").exists())
-            self.assertTrue((root / "docs" / "15_projects" / "senior-matching" / "SDS" / "SDS-001-senior-matching.md").exists())
+            self.assertTrue(
+                (
+                    root
+                    / "apps"
+                    / "senior-matching"
+                    / "src"
+                    / "senior_matching"
+                    / "__init__.py"
+                ).exists()
+            )
+            self.assertTrue(
+                (
+                    root
+                    / "docs"
+                    / "15_projects"
+                    / "senior-matching"
+                    / "SDS"
+                    / "SDS-001-senior-matching.md"
+                ).exists()
+            )
 
     def test_create_controlled_document(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -36,7 +54,9 @@ class ScaffoldTests(unittest.TestCase):
             result = create_document(root, "adr", "ADR-002", "Monorepo Rule")
 
             self.assertEqual(result.action, "created")
-            self.assertTrue((root / "docs" / "09_decisions" / "ADR-002-monorepo-rule.md").exists())
+            self.assertTrue(
+                (root / "docs" / "09_decisions" / "ADR-002-monorepo-rule.md").exists()
+            )
 
 
 if __name__ == "__main__":

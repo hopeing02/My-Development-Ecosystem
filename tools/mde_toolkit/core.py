@@ -173,7 +173,9 @@ testpaths = ["tests", "tools/tests"]
 
 def _docs_index() -> str:
     lines = ["# MDE 문서 체계", "", "## 문서 흐름", ""]
-    lines.append("`CON → GOV → STD → DEV → CMD → PRM → ARCH → SDS → ADR → QA → CODE → TEST → RELEASE`")
+    lines.append(
+        "`CON → GOV → STD → DEV → CMD → PRM → ARCH → SDS → ADR → QA → CODE → TEST → RELEASE`"
+    )
     lines.extend(["", "## 디렉터리", ""])
     for code, directory, description in FLOW:
         lines.append(f"- `{directory}/` — **{code}**: {description}")
@@ -334,7 +336,11 @@ def initialize_repository(root: Path, force: bool = False) -> list[WriteResult]:
         [
             write_file(root / "README.md", _root_readme(), force),
             write_file(root / ".gitignore", _gitignore(), force),
-            write_file(root / "CHANGELOG.md", "# Changelog\n\n모든 주요 변경 사항을 기록합니다.", force),
+            write_file(
+                root / "CHANGELOG.md",
+                "# Changelog\n\n모든 주요 변경 사항을 기록합니다.",
+                force,
+            ),
             write_file(root / "pyproject.toml", _root_pyproject(), force),
         ]
     )
@@ -346,7 +352,11 @@ def initialize_repository(root: Path, force: bool = False) -> list[WriteResult]:
     for code, directory, description in FLOW:
         category_dir = docs_root / directory
         category_dir.mkdir(parents=True, exist_ok=True)
-        results.append(write_file(category_dir / "README.md", _category_readme(code, description), force))
+        results.append(
+            write_file(
+                category_dir / "README.md", _category_readme(code, description), force
+            )
+        )
 
     projects_root = docs_root / "15_projects"
     projects_root.mkdir(parents=True, exist_ok=True)
@@ -368,7 +378,11 @@ def initialize_repository(root: Path, force: bool = False) -> list[WriteResult]:
         [
             write_file(foundation / "README.md", _foundation_readme(), force),
             write_file(foundation / "pyproject.toml", _foundation_pyproject(), force),
-            write_file(foundation / "src" / "mde" / "__init__.py", '__version__ = "0.1.0"', force),
+            write_file(
+                foundation / "src" / "mde" / "__init__.py",
+                '__version__ = "0.1.0"',
+                force,
+            ),
             ensure_file(foundation / "tests" / ".gitkeep"),
         ]
     )
@@ -387,7 +401,9 @@ def create_project(
     project_type = project_type.strip().lower()
     valid_types = {"generic", "python", "gas", "nextjs"}
     if project_type not in valid_types:
-        raise ValueError(f"프로젝트 유형은 다음 중 하나여야 합니다: {', '.join(sorted(valid_types))}")
+        raise ValueError(
+            f"프로젝트 유형은 다음 중 하나여야 합니다: {', '.join(sorted(valid_types))}"
+        )
 
     results = initialize_repository(root, force=False)
     root = root.expanduser().resolve()
@@ -405,7 +421,11 @@ def create_project(
             ),
             write_file(
                 app_root / ".mde-project.json",
-                '{\n  "name": "' + name + '",\n  "type": "' + project_type + '",\n  "status": "draft"\n}',
+                '{\n  "name": "'
+                + name
+                + '",\n  "type": "'
+                + project_type
+                + '",\n  "status": "draft"\n}',
                 force,
             ),
         ]
@@ -428,7 +448,11 @@ testpaths = ["tests"]
 """,
                     force,
                 ),
-                write_file(app_root / "src" / module / "__init__.py", '__version__ = "0.1.0"', force),
+                write_file(
+                    app_root / "src" / module / "__init__.py",
+                    '__version__ = "0.1.0"',
+                    force,
+                ),
                 write_file(
                     app_root / "tests" / "test_smoke.py",
                     f"""def test_project_identity() -> None:
@@ -493,7 +517,12 @@ function showApp() {{
             ]
         )
     else:
-        results.extend([ensure_file(app_root / "src" / ".gitkeep"), ensure_file(app_root / "tests" / ".gitkeep")])
+        results.extend(
+            [
+                ensure_file(app_root / "src" / ".gitkeep"),
+                ensure_file(app_root / "tests" / ".gitkeep"),
+            ]
+        )
 
     docs_root = root / "docs" / "15_projects" / name
     for directory in PROJECT_DOCUMENT_DIRECTORIES:
@@ -505,13 +534,27 @@ function showApp() {{
                 f"# {name} 프로젝트 문서\n\n이 폴더가 `{name}`의 설계 문서 단일 원본입니다.",
                 force,
             ),
-            write_file(docs_root / "SDS" / "SDS-000-project-standard.md", _project_sds_standard(name), force),
-            write_file(docs_root / "SDS" / f"SDS-001-{name}.md", _project_sds(name, project_type), force),
+            write_file(
+                docs_root / "SDS" / "SDS-000-project-standard.md",
+                _project_sds_standard(name),
+                force,
+            ),
+            write_file(
+                docs_root / "SDS" / f"SDS-001-{name}.md",
+                _project_sds(name, project_type),
+                force,
+            ),
         ]
     )
     for directory in PROJECT_DOCUMENT_DIRECTORIES:
         if directory != "SDS":
-            results.append(write_file(docs_root / directory / "README.md", _project_doc_readme(name, directory), force))
+            results.append(
+                write_file(
+                    docs_root / directory / "README.md",
+                    _project_doc_readme(name, directory),
+                    force,
+                )
+            )
 
     return results
 
@@ -538,10 +581,16 @@ def create_document(
 
     if project:
         project = validate_project_name(project)
-        target_dir = root / "docs" / "15_projects" / project / "SDS" if category == "sds" else root / "docs" / "15_projects" / project / "design"
+        target_dir = (
+            root / "docs" / "15_projects" / project / "SDS"
+            if category == "sds"
+            else root / "docs" / "15_projects" / project / "design"
+        )
     else:
         target_dir = root / "docs" / CATEGORY_TO_DIRECTORY[category]
 
     filename = f"{document_id}-{title.lower().replace(' ', '-')}.md"
     filename = re.sub(r"[^A-Za-z0-9가-힣._-]", "-", filename)
-    return write_file(target_dir / filename, _generic_document(category, document_id, title), force)
+    return write_file(
+        target_dir / filename, _generic_document(category, document_id, title), force
+    )
