@@ -3,6 +3,7 @@ name = "my-development-ecosystem"
 version = "0.1.0"
 description = "MDE monorepo metadata and development tools"
 requires-python = ">=3.12"
+mde = "mde:main"
 
 [tool.ruff]
 line-length = 88
@@ -10,3 +11,7 @@ target-version = "py312"
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "tools/tests"]
+pythonpath = [
+    "packages/mde-foundation/src",
+    "."
+]
