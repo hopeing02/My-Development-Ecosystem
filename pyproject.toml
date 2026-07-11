@@ -1,17 +1,27 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "my-development-ecosystem"
+name = "mde-foundation"
 version = "0.1.0"
-description = "MDE monorepo metadata and development tools"
-requires-python = ">=3.12"
-mde = "mde:main"
+description = "Shared foundation package for MDE applications"
+requires-python = ">=3.11"
 
-[tool.ruff]
-line-length = 88
-target-version = "py312"
+[project.scripts]
+mde = "mde_cli:main"
 
-[tool.pytest.ini_options]
-testpaths = ["tests", "tools/tests"]
-pythonpath = [
+[tool.setuptools]
+py-modules = ["mde_cli"]
+
+[tool.setuptools.packages.find]
+where = [
     "packages/mde-foundation/src",
     "."
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "packages/mde-foundation/src"
 ]

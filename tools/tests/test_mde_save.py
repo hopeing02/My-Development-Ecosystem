@@ -43,7 +43,10 @@ def test_parser_accepts_no_push() -> None:
 
 
 def test_get_current_branch(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_run_required(command: list[str]) -> FakeResult:
+    def fake_run_required(
+        command: list[str],
+        logger: object | None = None,
+    ) -> FakeResult:
         assert command == ["git", "branch", "--show-current"]
         return FakeResult(stdout="main")
 
@@ -53,7 +56,10 @@ def test_get_current_branch(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_get_current_branch_fails_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_run_required(command: list[str]) -> FakeResult:
+    def fake_run_required(
+        command: list[str],
+        logger: object | None = None,
+    ) -> FakeResult:
         assert command == ["git", "branch", "--show-current"]
         return FakeResult(stdout="")
 
@@ -64,7 +70,10 @@ def test_get_current_branch_fails_when_empty(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_get_changed_files(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_run_required(command: list[str]) -> FakeResult:
+    def fake_run_required(
+        command: list[str],
+        logger: object | None = None,
+    ) -> FakeResult:
         assert command == ["git", "status", "--short"]
         return FakeResult(stdout=" M README.md\n?? mde.py")
 
@@ -74,7 +83,9 @@ def test_get_changed_files(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_ensure_has_changes(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_get_changed_files() -> list[str]:
+    def fake_get_changed_files(
+        logger: object | None = None,
+    ) -> list[str]:
         return [" M README.md"]
 
     monkeypatch.setattr("tools.mde_save.get_changed_files", fake_get_changed_files)
@@ -83,7 +94,9 @@ def test_ensure_has_changes(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_ensure_has_changes_fails_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_get_changed_files() -> list[str]:
+    def fake_get_changed_files(
+        logger: object | None = None,
+    ) -> list[str]:
         return []
 
     monkeypatch.setattr("tools.mde_save.get_changed_files", fake_get_changed_files)
@@ -97,13 +110,20 @@ def test_save_runs_expected_commands_without_push(
 ) -> None:
     commands: list[list[str]] = []
 
-    def fake_get_current_branch() -> str:
+    def fake_get_current_branch(
+        logger: object | None = None,
+    ) -> str:
         return "main"
 
-    def fake_ensure_has_changes() -> list[str]:
+    def fake_ensure_has_changes(
+        logger: object | None = None,
+    ) -> list[str]:
         return [" M README.md"]
 
-    def fake_run_required(command: list[str]) -> FakeResult:
+    def fake_run_required(
+        command: list[str],
+        logger: object | None = None,
+    ) -> FakeResult:
         commands.append(command)
         return FakeResult(stdout="ok")
 
@@ -125,13 +145,20 @@ def test_save_runs_expected_commands_without_push(
 def test_save_runs_expected_commands_with_push(monkeypatch: pytest.MonkeyPatch) -> None:
     commands: list[list[str]] = []
 
-    def fake_get_current_branch() -> str:
+    def fake_get_current_branch(
+        logger: object | None = None,
+    ) -> str:
         return "main"
 
-    def fake_ensure_has_changes() -> list[str]:
+    def fake_ensure_has_changes(
+        logger: object | None = None,
+    ) -> list[str]:
         return [" M README.md"]
 
-    def fake_run_required(command: list[str]) -> FakeResult:
+    def fake_run_required(
+        command: list[str],
+        logger: object | None = None,
+    ) -> FakeResult:
         commands.append(command)
         return FakeResult(stdout="ok")
 
@@ -145,13 +172,20 @@ def test_save_runs_expected_commands_with_push(monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_save_stops_when_command_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_get_current_branch() -> str:
+    def fake_get_current_branch(
+        logger: object | None = None,
+    ) -> str:
         return "main"
 
-    def fake_ensure_has_changes() -> list[str]:
+    def fake_ensure_has_changes(
+        logger: object | None = None,
+    ) -> list[str]:
         return [" M README.md"]
 
-    def fake_run_required(command: list[str]) -> FakeResult:
+    def fake_run_required(
+        command: list[str],
+        logger: object | None = None,
+    ) -> FakeResult:
         if command == ["uv", "run", "black", "."]:
             raise SaveError("Command failed: uv run black .")
         return FakeResult(stdout="ok")

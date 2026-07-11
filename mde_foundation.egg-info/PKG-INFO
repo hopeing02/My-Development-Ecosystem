@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: mde-foundation
+Version: 0.1.0
+Summary: Shared foundation package for MDE applications
+Requires-Python: >=3.11

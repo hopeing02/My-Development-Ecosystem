@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
+
+LOG_DIR = Path("logs")
+LOG_FILE = LOG_DIR / "save.log"
 
 
 @dataclass(frozen=True)
@@ -14,6 +19,21 @@ class CommandResult:
 
 class SaveError(RuntimeError):
     pass
+
+
+def configure_logger() -> logging.Logger:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+    logger = logging.getLogger("mde.save")
+    logger.setLevel(logging.INFO)
+
+    if not logger.handlers:
+        handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+    return logger
 
 
 def run_command(command: list[str]) -> CommandResult:
@@ -30,17 +50,25 @@ def run_command(command: list[str]) -> CommandResult:
     )
 
 
-def run_required(command: list[str]) -> CommandResult:
+def run_required(
+    command: list[str], logger: logging.Logger | None = None
+) -> CommandResult:
     result = run_command(command)
+    command_text = " ".join(command)
 
     if result.returncode != 0:
-        raise SaveError(f"Command failed: {' '.join(command)}")
+        if logger is not None:
+            logger.error("FAILED: %s", command_text)
+        raise SaveError(f"Command failed: {command_text}")
+
+    if logger is not None:
+        logger.info("PASSED: %s", command_text)
 
     return result
 
 
-def get_current_branch() -> str:
-    result = run_required(["git", "branch", "--show-current"])
+def get_current_branch(logger: logging.Logger | None = None) -> str:
+    result = run_required(["git", "branch", "--show-current"], logger=logger)
 
     if not result.stdout:
         raise SaveError("Current Git branch could not be detected.")
@@ -48,8 +76,8 @@ def get_current_branch() -> str:
     return result.stdout
 
 
-def get_changed_files() -> list[str]:
-    result = run_required(["git", "status", "--short"])
+def get_changed_files(logger: logging.Logger | None = None) -> list[str]:
+    result = run_required(["git", "status", "--short"], logger=logger)
 
     if not result.stdout:
         return []
@@ -57,8 +85,8 @@ def get_changed_files() -> list[str]:
     return result.stdout.splitlines()
 
 
-def ensure_has_changes() -> list[str]:
-    changed_files = get_changed_files()
+def ensure_has_changes(logger: logging.Logger | None = None) -> list[str]:
+    changed_files = get_changed_files(logger=logger)
 
     if not changed_files:
         raise SaveError("No changes to save.")
@@ -67,24 +95,39 @@ def ensure_has_changes() -> list[str]:
 
 
 def save(commit_message: str, push: bool) -> None:
-    branch = get_current_branch()
-    changed_files = ensure_has_changes()
+    logger = configure_logger()
+    logger.info("MDE save started.")
 
-    print(f"Current branch: {branch}")
-    print(f"Changed files: {len(changed_files)}")
+    try:
+        branch = get_current_branch(logger=logger)
+        changed_files = ensure_has_changes(logger=logger)
 
-    run_required(["uv", "run", "black", "."])
-    run_required(["uv", "run", "ruff", "check", "."])
-    run_required(["uv", "run", "pytest"])
+        print(f"Current branch: {branch}")
+        print(f"Changed files: {len(changed_files)}")
 
-    run_required(["git", "add", "."])
-    run_required(["git", "commit", "-m", commit_message])
+        logger.info("Current branch: %s", branch)
+        logger.info("Changed files: %s", len(changed_files))
 
-    if push:
-        print("Push: enabled")
-        run_required(["git", "push"])
-    else:
-        print("Push: disabled")
+        run_required(["uv", "run", "black", "."], logger=logger)
+        run_required(["uv", "run", "ruff", "check", "."], logger=logger)
+        run_required(["uv", "run", "pytest"], logger=logger)
+
+        run_required(["git", "add", "."], logger=logger)
+        run_required(["git", "commit", "-m", commit_message], logger=logger)
+
+        if push:
+            print("Push: enabled")
+            logger.info("Push: enabled")
+            run_required(["git", "push"], logger=logger)
+        else:
+            print("Push: disabled")
+            logger.info("Push: disabled")
+
+        logger.info("MDE save completed.")
+
+    except SaveError:
+        logger.exception("MDE save failed.")
+        raise
 
 
 def build_parser() -> argparse.ArgumentParser:
